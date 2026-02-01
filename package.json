@@ -10,9 +10,58 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onView:spotifyView",
+    "onCommand:spotify.playpause",
+    "onCommand:spotify.next",
+    "onCommand:spotify.previous"
+  ],
+  "os": [
+    "win32"
   ],
   "main": "./out/extension.js",
+  "files": [
+    "out/**",
+    "media/**",
+    "helper/SpotifySmtcHelper.exe",
+    "package.json",
+    "README.md"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "spotifySidebar",
+          "title": "Spotify",
+          "icon": "media/spotify.svg"
+        }
+      ]
+    },
+    "views": {
+      "spotifySidebar": [
+        {
+          "id": "spotifyView",
+          "name": "Spotify",
+          "type": "webview",
+          "icon": "media/spotify.svg"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "spotify.playpause",
+        "title": "Spotify: Play / Pause"
+      },
+      {
+        "command": "spotify.next",
+        "title": "Spotify: Next"
+      },
+      {
+        "command": "spotify.previous",
+        "title": "Spotify: Previous"
+      }
+    ]
+  },
   "scripts": {
     "vscode:prepublish": "yarn run compile",
     "compile": "tsc -p ./",

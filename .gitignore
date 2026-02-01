@@ -3,3 +3,9 @@ dist
 node_modules
 .vscode-test/
 *.vsix
+helper/SpotifySmtcHelper/bin/
+helper/SpotifySmtcHelper/obj/
+helper/SpotifySmtcHelper/**/publish/
+.vs/
+*.user
+*.suo
