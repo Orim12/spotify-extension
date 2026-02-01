@@ -3,10 +3,12 @@
   "displayName": "spotify controller",
   "description": "controller for spotify",
   "version": "0.0.1",
+  "publisher": "orim12",
   "repository": {
     "type": "git",
     "url": "https://github.com/Orim12/spotify-extension"
   },
+  "icon": "media/spotify.png",
   "engines": {
     "vscode": "^1.108.1"
   },
