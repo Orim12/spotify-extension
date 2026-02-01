@@ -5,14 +5,21 @@ import { exec, spawn, ChildProcessWithoutNullStreams } from "child_process";
 
 const VIEW_TYPE = "spotifyView";
 const POLL_INTERVAL_MS = 3000;
-const HELPER_RELATIVE_PATH = path.join("helper", "SpotifySmtcHelper.exe");
 
 type TrackMessage =
 	| { type: "track"; title: string; artist: string; album: string }
 	| { type: "status"; message: string };
 
 function getHelperPath(context: vscode.ExtensionContext): string {
-	return context.asAbsolutePath(HELPER_RELATIVE_PATH);
+	const platform = process.platform;
+	
+	if (platform === "darwin") {
+		// macOS
+		return context.asAbsolutePath(path.join("helper", "spotify-helper.sh"));
+	} else {
+		// Windows
+		return context.asAbsolutePath(path.join("helper", "SpotifySmtcHelper.exe"));
+	}
 }
 
 class HelperClient {
@@ -35,16 +42,26 @@ class HelperClient {
 			return;
 		}
 
+		// Make helper executable on macOS
+		if (process.platform === "darwin") {
+			fs.chmodSync(helperPath, 0o755);
+		}
+
 		this.process = spawn(helperPath, ["--server"], {
 			windowsHide: true,
 			stdio: "pipe",
 		});
 
-		this.process.stdout.on("data", (chunk: Buffer) => {
-			this.buffer += chunk.toString("utf8");
+		this.process.stdout?.on("data", (chunk: Buffer) => {
+			const str = chunk.toString("utf8");
+			this.buffer += str;
 			let lineBreakIndex = this.buffer.indexOf("\n");
 			while (lineBreakIndex !== -1) {
-				const line = this.buffer.slice(0, lineBreakIndex).replace(/\r$/, "");
+				let line = this.buffer.slice(0, lineBreakIndex).replace(/\r$/, "");
+				// Remove BOM if present
+				if (line.charCodeAt(0) === 0xfeff) {
+					line = line.slice(1);
+				}
 				this.buffer = this.buffer.slice(lineBreakIndex + 1);
 				const resolver = this.pending.shift();
 				if (resolver) {
@@ -54,20 +71,22 @@ class HelperClient {
 			}
 		});
 
-		this.process.on("exit", () => {
-			this.process = undefined;
-			this.buffer = "";
-			while (this.pending.length > 0) {
-				const resolver = this.pending.shift();
-				if (resolver) {
-					resolver("Helper exited");
+		if (this.process) {
+			this.process.on("exit", () => {
+				this.process = undefined;
+				this.buffer = "";
+				while (this.pending.length > 0) {
+					const resolver = this.pending.shift();
+					if (resolver) {
+						resolver("Helper exited");
+					}
 				}
-			}
-		});
+			});
 
-		this.process.on("error", () => {
-			this.process = undefined;
-		});
+			this.process.on("error", () => {
+				this.process = undefined;
+			});
+		}
 
 		this.starting = false;
 	}
@@ -97,18 +116,35 @@ function execHelperOnce(
 	return new Promise((resolve) => {
 		const helperPath = getHelperPath(context);
 		if (!fs.existsSync(helperPath)) {
-			resolve("Helper not built. Build helper/SpotifySmtcHelper.csproj.");
+			if (process.platform === "darwin") {
+				resolve("Helper not found. Ensure helper/spotify-helper.sh is included.");
+			} else {
+				resolve("Helper not built. Build helper/SpotifySmtcHelper.csproj.");
+			}
 			return;
 		}
 
+		// Make helper executable on macOS
+		if (process.platform === "darwin") {
+			fs.chmodSync(helperPath, 0o755);
+		}
+
 		const args = command ? ` ${command}${skipInfo ? " --noinfo" : ""}` : "";
-		exec(`"${helperPath}"${args}`, { windowsHide: true }, (error, stdout, stderr) => {
+		const command_str = process.platform === "darwin" 
+			? `"${helperPath}"${args}` 
+			: `"${helperPath}"${args}`;
+
+		exec(command_str, { windowsHide: true, encoding: "utf8" }, (error, stdout, stderr) => {
 			if (error) {
 				resolve(`Helper error: ${error.message}`);
 				return;
 			}
 
-			const output = `${stdout ?? ""}${stderr ?? ""}`.trim();
+			let output = `${stdout ?? ""}${stderr ?? ""}`.trim();
+			// Remove BOM if present
+			if (output.charCodeAt(0) === 0xfeff) {
+				output = output.slice(1);
+			}
 			resolve(output.length > 0 ? output : "No output from helper");
 		});
 	});

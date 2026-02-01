@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Windows.Media.Control;
 
@@ -9,18 +11,22 @@ namespace SpotifySmtcHelper
     {
         private static async Task<int> Main(string[] args)
         {
-            if (args.Any(arg => arg.Equals("--server", StringComparison.OrdinalIgnoreCase)))
+            // Set UTF-8 encoding for console output to support Asian characters
+            Console.OutputEncoding = Encoding.UTF8;
             {
-                await RunServerAsync();
+                if (args.Any(arg => arg.Equals("--server", StringComparison.OrdinalIgnoreCase)))
+                {
+                    await RunServerAsync();
+                    return 0;
+                }
+
+                var manager =
+                    await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
+
+                string commandLine = args.Length > 0 ? string.Join(" ", args) : "get";
+                await HandleCommandAsync(manager, commandLine, false);
                 return 0;
             }
-
-            var manager =
-                await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
-
-            string commandLine = args.Length > 0 ? string.Join(" ", args) : "get";
-            await HandleCommandAsync(manager, commandLine, false);
-            return 0;
         }
 
         private static async Task RunServerAsync()
