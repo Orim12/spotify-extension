@@ -3,6 +3,10 @@
   "displayName": "spotify controller",
   "description": "controller for spotify",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Orim12/spotify-extension"
+  },
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -23,7 +27,9 @@
     "helper/SpotifySmtcHelper.exe",
     "helper/spotify-helper.sh",
     "package.json",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "LICENSE.txt"
   ],
   "contributes": {
     "viewsContainers": {
