@@ -9,3 +9,4 @@ helper/SpotifySmtcHelper/**/publish/
 .vs/
 *.user
 *.suo
+.ds_store
