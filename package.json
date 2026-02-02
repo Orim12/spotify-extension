@@ -2,7 +2,7 @@
   "name": "spotify-controller",
   "displayName": "spotify controller",
   "description": "controller for spotify",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "publisher": "orim12",
   "repository": {
     "type": "git",
@@ -27,7 +27,6 @@
     "out/**",
     "media/**",
     "helper/SpotifySmtcHelper.exe",
-    "helper/spotify-helper.sh",
     "package.json",
     "README.md",
     "LICENSE",
