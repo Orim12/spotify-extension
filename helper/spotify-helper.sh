@@ -3,39 +3,6 @@
 # Spotify Helper for macOS
 # This script provides the same interface as the Windows helper but uses AppleScript
 
-if [[ "$1" == "--server" ]]; then
-    # Server mode: read commands from stdin
-    while IFS= read -r line; do
-        if [[ -z "$line" || "$line" =~ ^[[:space:]]*$ ]]; then
-            continue
-        fi
-        
-        # Parse command and options
-        read -ra parts <<< "$line"
-        command="${parts[0]}"
-        noinfo=false
-        for arg in "${parts[@]:1}"; do
-            if [[ "$arg" == "--noinfo" ]]; then
-                noinfo=true
-            fi
-        done
-        
-        # Execute command
-        handle_command "$command" "$noinfo"
-    done
-else
-    # Single command mode
-    command="$1"
-    noinfo=false
-    for arg in "$@"; do
-        if [[ "$arg" == "--noinfo" ]]; then
-            noinfo=true
-        fi
-    done
-    
-    handle_command "$command" "$noinfo"
-fi
-
 handle_command() {
     local command="$1"
     local noinfo="$2"
@@ -84,4 +51,36 @@ APPLESCRIPT
     fi
 }
 
-export -f handle_command
+# Main execution logic
+if [[ "$1" == "--server" ]]; then
+    # Server mode: read commands from stdin
+    while IFS= read -r line; do
+        if [[ -z "$line" || "$line" =~ ^[[:space:]]*$ ]]; then
+            continue
+        fi
+        
+        # Parse command and options
+        read -ra parts <<< "$line"
+        command="${parts[0]}"
+        noinfo=false
+        for arg in "${parts[@]:1}"; do
+            if [[ "$arg" == "--noinfo" ]]; then
+                noinfo=true
+            fi
+        done
+        
+        # Execute command
+        handle_command "$command" "$noinfo"
+    done
+else
+    # Single command mode
+    command="$1"
+    noinfo=false
+    for arg in "$@"; do
+        if [[ "$arg" == "--noinfo" ]]; then
+            noinfo=true
+        fi
+    done
+    
+    handle_command "$command" "$noinfo"
+fi
